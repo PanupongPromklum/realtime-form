@@ -2,70 +2,49 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Patient } from "@/types/patient";
-import Input from "@/components/ui/Input";
-import Select from "@/components/ui/Select";
-import Label from "@/components/ui/Labelinput";
 import StatusBadge from "@/components/ui/statusbadge";
+import FieldDisplay from "@/components/ui/Fielddisplay";
+import SectionTitle from "@/components/ui/SectionTitle";
+
 
 export default function StaffPage() {
+    const [form, setForm] = useState<any>({});
 
-    const [form, setForm] = useState({
-        prefix: "",
-        first_name: "",
-        middle_name: "",
-        last_name: "",
-        gender: "",
-        birth_day: "",
-        birth_month: "",
-        birth_year: "",
-        nationality: "",
-        religion: "",
-        phone: "",
-        email: "",
-        address_line: "",
-        city: "",
-        state: "",
-        postal_code: "",
-        country: "",
-        emergency_name: "",
-        emergency_relationship: "",
-        emergency_phone: "",
-        preferred_language: "",
-        status: "",
-    });
+    const PATIENT_ID = "demo-patient"; // ใช้ค่าเดียวกับใน PatientForm.tsx (สำหรับ demo)
 
-    const PATIENT_ID = "demo-patient";
-
-    // Fetch data from Supabase in realtime
     useEffect(() => {
-        // Realtime subscription
         const channel = supabase
             .channel(`patient-${PATIENT_ID}`)
             .on(
                 "postgres_changes",
                 {
-                    event: "UPDATE",
+                    event: "*", // 👈 ฟังทุก event
                     schema: "public",
                     table: "patients",
                     filter: `id=eq.${PATIENT_ID}`,
                 },
-                (event: any) => {
-                    // event.new มีค่า row ใหม่
-                    setForm(event.new || {});
+                (payload: any) => {
+                    if (payload.eventType === "DELETE") {
+                        // patient ปิดหน้า → ล้างข้อมูล
+                        setForm({});
+                    } else {
+                        // INSERT / UPDATE
+                        setForm(payload.new || {});
+                    }
                 }
             )
             .subscribe();
 
-        // Fetch initial data
         const fetchData = async () => {
             const { data } = await supabase
                 .from("patients")
                 .select("*")
                 .eq("id", PATIENT_ID)
-                .single();
-            if (data) setForm(data);
+                .maybeSingle(); // 👈 สำคัญ
+
+            setForm(data || {});
         };
+
         fetchData();
 
         return () => {
@@ -73,138 +52,96 @@ export default function StaffPage() {
         };
     }, []);
 
-
     return (
-
-
-        <div className="mx-auto max-w-4xl bg-white p-6 rounded-xl shadow-sm space-y-8 text-sm">
-            <div className="block sm:flex items-center justify-between ">
-                <h1 className="text-2xl font-semibold  ">Staff View</h1>
-                <div className="flex gap-2 items-center mt-2 justify-between">Patient Status: <StatusBadge status={form.status} /></div>
+        <div className="mx-auto max-w-4xl bg-white p-6 rounded-xl shadow-sm space-y-10 text-sm">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <h1 className="text-2xl font-semibold">Staff View</h1>
+                <div className="flex items-center gap-2">
+                    <span className="text-gray-500 text-sm">Patient Status</span>
+                    <StatusBadge status={form.status} />
+                </div>
             </div>
-
 
             {/* Personal Information */}
             <section className="space-y-4">
-                <div className="flex gap-2 text-gray-500 items-center ">
-                    <p className="whitespace-nowrap">Personal Information</p>
-                    <div className="bg-gray-300 h-[1px] w-full"></div>
-                </div>
+                <SectionTitle title="Personal Information" />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                        <Label> Prefix </Label>
-                        <Select name="prefix" value={form.prefix || ""} disabled>
-                            <option value="">Select Prefix</option>
-                            <option value="Mr.">Mr.</option>
-                            <option value="Mrs.">Mrs.</option>
-                            <option value="Ms.">Ms.</option>
-                        </Select>
+                <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+                    <div className="md:col-span-1">
+                        <FieldDisplay label="Prefix" value={form.prefix} />
                     </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                        <Label> First Name </Label>
-                        <Input value={form.first_name || ""} disabled />
+                    <div className="md:col-span-2">
+                        <FieldDisplay label="First Name" value={form.first_name} />
                     </div>
-                    <div>
-                        <Label> Middle Name </Label>
-                        <Input value={form.middle_name || ""} disabled />
+
+                    <div className="md:col-span-2">
+                        <FieldDisplay label="Middle Name" value={form.middle_name} />
                     </div>
-                    <div>
-                        <Label> Last Name </Label>
-                        <Input value={form.last_name || ""} disabled />
+
+                    <div className="md:col-span-2">
+                        <FieldDisplay label="Last Name" value={form.last_name} />
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <Label> Gender </Label>
-                        <Select value={form.gender || ""} disabled>
-                            <option value="">Select Gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </Select>
-                    </div>
-                    <div>
-                        <Label> Date of Birth </Label>
-                        <div className="grid grid-cols-3 gap-3">
-                            <Input value={form.birth_day || ""} disabled placeholder="DD" />
-                            <Input value={form.birth_month || ""} disabled placeholder="MM" />
-                            <Input value={form.birth_year || ""} disabled placeholder="YYYY" />
-                        </div>
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <Label> Nationality </Label>
-                        <Input value={form.nationality || ""} disabled />
-                    </div>
-                    <div>
-                        <Label> Religion </Label>
-                        <Select value={form.religion || ""} disabled>
-                            <option value="">Religion</option>
-                            <option value="buddhist">Buddhist</option>
-                            <option value="christian">Christian</option>
-                        </Select>
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FieldDisplay label="Gender" value={form.gender} />
+                    <FieldDisplay
+                        label="Date of Birth"
+                        value={`${form.birth_day || ""}/${form.birth_month || ""}/${form.birth_year || ""}`}
+                    />
+                    <FieldDisplay label="Nationality" value={form.nationality} />
+                    <FieldDisplay label="Religion" value={form.religion} />
                 </div>
             </section>
 
             {/* Contact Information */}
-            <section className="space-y-3">
-                <div className="flex gap-2 text-gray-500 items-center ">
-                    <p className="whitespace-nowrap">Contact Information</p>
-                    <div className="bg-gray-300 h-[1px] w-full"></div>
+            <section className="space-y-4">
+                <SectionTitle title="Contact Information" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FieldDisplay label="Phone Number" value={form.phone} />
+                    <FieldDisplay label="Email" value={form.email} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <Label> Phone Number </Label>
-                        <Input value={form.phone || ""} disabled />
-                    </div>
-                    <div>
-                        <Label> Email </Label>
-                        <Input value={form.email || ""} disabled />
-                    </div>
-                </div>
+                <FieldDisplay label="Address" value={form.address_line} />
 
-                <Label> Address </Label>
-                <Input value={form.address_line || ""} disabled />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Input value={form.city || ""} disabled />
-                    <Input value={form.state || ""} disabled />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FieldDisplay label="City" value={form.city} />
+                    <FieldDisplay label="State" value={form.state} />
+                    <FieldDisplay label="Postal Code" value={form.postal_code} />
+                    <FieldDisplay label="Country" value={form.country} />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Input value={form.postal_code || ""} disabled />
-                    <Input value={form.country || ""} disabled />
-                </div>
+            </section>
 
-                {/* Emergency Contact */}
-                <Label> Emergency Contact </Label>
-                <Input value={form.emergency_name || ""} disabled />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <Select value={form.emergency_relationship || ""} disabled>
-                        <option value="">Relationship</option>
-                        <option value="parent">Parent</option>
-                        <option value="spouse">Spouse</option>
-                        <option value="friend">Friend</option>
-                    </Select>
-                    <Input value={form.emergency_phone || ""} disabled />
+            {/* Emergency Contact */}
+            <section className="space-y-4">
+                <SectionTitle title="Emergency Contact" />
+
+                <FieldDisplay label="Contact Name" value={form.emergency_name} />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FieldDisplay
+                        label="Relationship"
+                        value={form.emergency_relationship}
+                    />
+                    <FieldDisplay
+                        label="Phone Number"
+                        value={form.emergency_phone}
+                    />
                 </div>
             </section>
 
             {/* Preferences */}
-            <div className="bg-gray-300 h-[1px] w-full"></div>
-            <section className="space-y-3">
-                <Label> Preferred Language </Label>
-                <Select value={form.preferred_language || ""} disabled>
-                    <option value="">Preferred Language</option>
-                    <option value="english">English</option>
-                    <option value="thai">Thai</option>
-                </Select>
+
+            <section className="space-y-4">
+                <div className="bg-gray-300 h-[1px] w-full"></div>
+                <FieldDisplay
+                    label="Preferred Language"
+                    value={form.preferred_language}
+                />
             </section>
         </div>
     );

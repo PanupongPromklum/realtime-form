@@ -1,4 +1,3 @@
-// StatusBadge.tsx
 "use client";
 
 interface StatusBadgeProps {
@@ -10,7 +9,7 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
     let text = "";
 
     switch (status) {
-        case "inactrive":
+        case "inactive":
             bgColor = "bg-gray-200 text-gray-800";
             text = "Inactive";
             break;
@@ -21,10 +20,6 @@ export default function StatusBadge({ status }: StatusBadgeProps) {
         case "submitted":
             bgColor = "bg-green-200 text-green-800";
             text = "Submitted";
-            break;
-        case "error":
-            bgColor = "bg-red-200 text-red-800";
-            text = "Error";
             break;
         default:
             bgColor = "bg-gray-100 text-gray-600";

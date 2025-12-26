@@ -1,4 +1,4 @@
-import { Patient } from "@/types/patient";
+// import { Patient } from "@/types/patient";
 export interface PatientFormType {
     prefix: string;
     first_name: string;
@@ -87,8 +87,7 @@ export function validatePatientForm(form: PatientFormType): ValidationResult {
     else if (!/^\d+$/.test(form.phone)) errors.phone = "Phone number must contain only digits";
 
     // Email
-    if (!form.email) errors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errors.email = "Invalid email";
+    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) errors.email = "Invalid email";
 
     // Address
     if (!form.address_line) errors.address_line = "Address is required";

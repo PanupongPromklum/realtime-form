@@ -1,23 +1,27 @@
-// PatientForm.tsx
 "use client";
-
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Patient } from "@/types/patient";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Label from "@/components/ui/Labelinput";
-import { validatePatientForm, PatientFormType } from "@/utils/validation";
+import SectionTitle from "@/components/ui/SectionTitle";
+import { validatePatientForm } from "@/utils/validation";
+
+const PATIENT_ID = "demo-patient"; // ใช้ค่าเดียวกับใน StaffDashboard.tsx (สำหรับ demo)
 
 export default function PatientForm() {
+    // Error State (Validation)
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    //Form State เก็บข้อมูล patient ทั้งหมด
     const [form, setForm] = useState({
-        prefix: "Mr.",
+        prefix: "",
         first_name: "",
         middle_name: "",
         last_name: "",
-        gender: "male",
+        gender: "",
         birth_day: "",
         birth_month: "",
         birth_year: "",
@@ -29,7 +33,7 @@ export default function PatientForm() {
         city: "",
         state: "",
         postal_code: "",
-        country: "Thailand",
+        country: "",
         emergency_name: "",
         emergency_relationship: "",
         emergency_phone: "",
@@ -37,21 +41,45 @@ export default function PatientForm() {
         status: "inactive",
     });
 
-    const PATIENT_ID = "demo-patient";
+    // ล้างข้อมูลเมื่อปิดหน้า
+    useEffect(() => {
+        const clearPatientData = async () => {
+            await supabase
+                .from("patients")
+                .delete()
+                .eq("id", PATIENT_ID);
+        };
 
-    const [errors, setErrors] = useState<Record<string, string>>({}); // เก็บข้อความ error
+        const handleBeforeUnload = () => {
+            clearPatientData();
+        };
 
+        window.addEventListener("beforeunload", handleBeforeUnload);
+
+        return () => {
+            handleBeforeUnload();
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+        };
+    }, []);
+
+
+
+    // เช็ค event การเปลี่ยนแปลง input ทุกตัว
     const handleChange = async (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
         const { name, value } = e.target;
+
+        // ถ้า submit แล้ว → ห้ามแก้ไขสถานะ
+        if (form.status === "submitted") return;
+
         const updatedForm = { ...form, [name]: value };
 
-        // ตรวจสอบว่า form มีค่ากรอกหรือไม่
+        // เช็คว่ามี field ใดถูกกรอกหรือยัง
         const hasValue = Object.entries(updatedForm).some(
-            ([key, val]) =>
-                key !== "status" && val !== "" && val !== null && val !== undefined
+            ([key, val]) => key !== "status" && String(val).trim() !== ""
         );
+
         updatedForm.status = hasValue ? "active" : "inactive";
 
         setForm(updatedForm);
@@ -64,63 +92,31 @@ export default function PatientForm() {
     };
 
 
-    useEffect(() => {
-        const setActive = async (active: boolean) => {
-            setForm(prev => {
-                if (prev.status === "submitted") return prev;
-                return { ...prev, status: active ? "active" : "inactive" };
-            });
 
-            if (form.status !== "submitted") {
-                await supabase
-                    .from("patients")
-                    .update({ status: active ? "active" : "inactive" })
-                    .eq("id", PATIENT_ID);
-            }
-        };
-
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === "visible") {
-                setActive(true);
-            } else if (document.visibilityState === "hidden") {
-                // ใช้ sendBeacon แทน async เพื่อให้ browser ปิด tab ได้ทัน
-                const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/patients?id=eq.${PATIENT_ID}`;
-                const payload = JSON.stringify({ status: "inactive" });
-                navigator.sendBeacon(url, payload);
-
-                setActive(false); // update local state
-            }
-        };
-
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        // set initial
-        setActive(document.visibilityState === "visible");
-
-        return () => {
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-            setActive(false);
-        };
-    }, []);
-
+    // เช็ค Validation และ Submit ข้อมูล
     const handleSubmit = async () => {
         const { valid, errors: validationErrors } = validatePatientForm(form);
 
         if (!valid) {
-            setErrors(validationErrors); // แสดง error บน UI
+            setErrors(validationErrors);
             return;
         }
 
-        setErrors({}); // เคลียร์ error
+        setErrors({});
 
         await supabase
             .from("patients")
-            .update({ ...form, status: "submitted" })
+            .update({
+                ...form,
+                status: "submitted",
+                updated_at: new Date().toISOString(),
+            })
             .eq("id", PATIENT_ID);
 
         setForm(prev => ({ ...prev, status: "submitted" }));
     };
 
+    // error style ไม่แยกเพราะใช้หน้าเดียว
     const inputClass = (field: string) =>
         errors[field] ? "border-red-500" : "";
 
@@ -130,11 +126,7 @@ export default function PatientForm() {
 
             {/* Personal Information */}
             <section className="space-y-4">
-                <div className="flex gap-2 text-gray-500 items-center">
-                    <p className="whitespace-nowrap">Personal Information</p>
-                    <div className="bg-gray-300 h-[1px] w-full"></div>
-                </div>
-
+                <SectionTitle title="Personal Information" />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                         <Label required> Prefix </Label>
@@ -144,6 +136,7 @@ export default function PatientForm() {
                             onChange={handleChange}
                             className={inputClass("prefix")}
                         >
+                            <option value="">Prefix</option>
                             <option value="Mr.">Mr.</option>
                             <option value="Mrs.">Mrs.</option>
                             <option value="Ms.">Ms.</option>
@@ -207,6 +200,7 @@ export default function PatientForm() {
                             onChange={handleChange}
                             className={inputClass("gender")}
                         >
+                            <option value="">Gender</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
                         </Select>
@@ -303,10 +297,8 @@ export default function PatientForm() {
 
             {/* Contact */}
             <section className="space-y-3">
-                <div className="flex gap-2 text-gray-500 items-center ">
-                    <p className="whitespace-nowrap">Contact Information</p>
-                    <div className="bg-gray-300 h-[1px] w-full"></div>
-                </div>
+
+                <SectionTitle title="Contact Information" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                         <Label required> Phone Number </Label>
@@ -324,7 +316,7 @@ export default function PatientForm() {
                     </div>
 
                     <div>
-                        <Label required> Email </Label>
+                        <Label > Email </Label>
                         <Input
                             name="email"
                             value={form.email}
@@ -414,10 +406,13 @@ export default function PatientForm() {
 
                     </div>
                 </div>
+            </section>
 
-                {/* Emergency Contact */}
-                <Label> Emergency Contact </Label>
+            {/* Emergency Contact */}
+            <section className="space-y-3">
+                <SectionTitle title="Emergency Contact" />
                 <div>
+                    <Label> Contact Name </Label>
                     <Input
                         name="emergency_name"
                         value={form.emergency_name}
@@ -430,9 +425,9 @@ export default function PatientForm() {
                     )}
                 </div>
 
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
+                        <Label> Relationship </Label>
                         <Select
                             name="emergency_relationship"
                             value={form.emergency_relationship}
@@ -450,10 +445,11 @@ export default function PatientForm() {
                     </div>
 
                     <div>
+                        <Label> Phone Number</Label>
                         <Input
                             name="emergency_phone"
                             value={form.emergency_phone}
-                            placeholder="Emergency Phone"
+                            placeholder="Phone Number"
                             onChange={handleChange}
                             className={inputClass("emergency_phone")}
                         />
@@ -465,7 +461,7 @@ export default function PatientForm() {
                 </div>
             </section>
 
-            {/* Preferences */}
+            {/* Preferred Language */}
             <div className="bg-gray-300 h-[1px] w-full"></div>
             <section className="space-y-3">
                 <Label required> Preferred Language </Label>
