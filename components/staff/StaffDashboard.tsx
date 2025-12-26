@@ -18,14 +18,14 @@ export default function StaffPage() {
             .on(
                 "postgres_changes",
                 {
-                    event: "*", // 👈 ฟังทุก event
+                    event: "*",
                     schema: "public",
                     table: "patients",
                     filter: `id=eq.${PATIENT_ID}`,
                 },
                 (payload: any) => {
                     if (payload.eventType === "DELETE") {
-                        // patient ปิดหน้า → ล้างข้อมูล
+                        // patient ปิดหน้าให้ล้างข้อมูล
                         setForm({});
                     } else {
                         // INSERT / UPDATE
@@ -40,7 +40,7 @@ export default function StaffPage() {
                 .from("patients")
                 .select("*")
                 .eq("id", PATIENT_ID)
-                .maybeSingle(); // 👈 สำคัญ
+                .maybeSingle();
 
             setForm(data || {});
         };
@@ -54,7 +54,7 @@ export default function StaffPage() {
 
     return (
         <div className="mx-auto max-w-4xl bg-white p-6 rounded-xl shadow-sm space-y-10 text-sm">
-            {/* Header */}
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <h1 className="text-2xl font-semibold">Staff View</h1>
                 <div className="flex items-center gap-2">

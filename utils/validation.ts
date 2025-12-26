@@ -33,10 +33,9 @@ export function validatePatientForm(form: PatientFormType): ValidationResult {
     const errors: ValidationResult["errors"] = {};
     const currentYear = new Date().getFullYear();
 
-    // Prefix
+
     if (!form.prefix) errors.prefix = "Prefix is required";
 
-    // Name validation (letters only)
     if (!form.first_name) errors.first_name = "First name is required";
     else if (!/^[A-Za-z]+$/.test(form.first_name))
         errors.first_name = "First name must contain only letters";
@@ -48,10 +47,9 @@ export function validatePatientForm(form: PatientFormType): ValidationResult {
     else if (!/^[A-Za-z]+$/.test(form.last_name))
         errors.last_name = "Last name must contain only letters";
 
-    // Gender
     if (!form.gender) errors.gender = "Gender is required";
 
-    // Birth date validation
+    // Birth date
     const day = parseInt(form.birth_day);
     const month = parseInt(form.birth_month);
     const year = parseInt(form.birth_year);
