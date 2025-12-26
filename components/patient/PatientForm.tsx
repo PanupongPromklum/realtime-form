@@ -72,31 +72,6 @@ export default function PatientForm() {
 
 
     // เช็ค event การเปลี่ยนแปลง input ทุกตัว
-    // const handleChange = async (
-    //     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-    // ) => {
-    //     const { name, value } = e.target;
-
-    //     // ถ้า submit แล้ว → ห้ามแก้ไขสถานะ
-    //     if (form.status === "submitted") return;
-
-    //     const updatedForm = { ...form, [name]: value };
-
-    //     // เช็คว่ามี field ใดถูกกรอกหรือยัง
-    //     const hasValue = Object.entries(updatedForm).some(
-    //         ([key, val]) => key !== "status" && String(val).trim() !== ""
-    //     );
-
-    //     updatedForm.status = hasValue ? "active" : "inactive";
-
-    //     setForm(updatedForm);
-
-    //     await supabase.from("patients").upsert({
-    //         id: PATIENT_ID,
-    //         ...updatedForm,
-    //         updated_at: new Date().toISOString(),
-    //     });
-    // };
     const handleChange = async (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
@@ -111,7 +86,15 @@ export default function PatientForm() {
         updatedForm.status = hasValue ? "active" : "inactive";
 
         setForm(updatedForm);
-        setIsDirty(true); // 👈 สำคัญ
+        setIsDirty(true);
+
+        // 👇 ลบ error ของ field ที่กำลังแก้
+        setErrors(prev => {
+            if (!prev[name]) return prev;
+            const newErrors = { ...prev };
+            delete newErrors[name];
+            return newErrors;
+        });
 
         await supabase.from("patients").upsert({
             id: PATIENT_ID,
@@ -121,29 +104,8 @@ export default function PatientForm() {
     };
 
 
-
     // เช็ค Validation และ Submit ข้อมูล
-    // const handleSubmit = async () => {
-    //     const { valid, errors: validationErrors } = validatePatientForm(form);
 
-    //     if (!valid) {
-    //         setErrors(validationErrors);
-    //         return;
-    //     }
-
-    //     setErrors({});
-
-    //     await supabase
-    //         .from("patients")
-    //         .update({
-    //             ...form,
-    //             status: "submitted",
-    //             updated_at: new Date().toISOString(),
-    //         })
-    //         .eq("id", PATIENT_ID);
-
-    //     setForm(prev => ({ ...prev, status: "submitted" }));
-    // };
     const handleSubmit = async () => {
         const { valid, errors: validationErrors } = validatePatientForm(form);
 
