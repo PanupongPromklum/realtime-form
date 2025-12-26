@@ -31,23 +31,27 @@ export interface ValidationResult {
 
 export function validatePatientForm(form: PatientFormType): ValidationResult {
     const errors: ValidationResult["errors"] = {};
+
+    const TH_EN_TEXT = /^[A-Za-zก-๙ ]+$/;
+    const EN_TEXT = /^[A-Za-z ]+$/;
+    const DIGITS = /^\d+$/;
+
     const currentYear = new Date().getFullYear();
 
-
+    // Name fields
     if (!form.prefix) errors.prefix = "Prefix is required";
 
     if (!form.first_name) errors.first_name = "First name is required";
-    else if (!/^[A-Za-z]+$/.test(form.first_name))
+    else if (!TH_EN_TEXT.test(form.first_name))
         errors.first_name = "First name must contain only letters";
 
-    if (form.middle_name && !/^[A-Za-z]+$/.test(form.middle_name))
+    if (form.middle_name && !TH_EN_TEXT.test(form.middle_name))
         errors.middle_name = "Middle name must contain only letters";
 
     if (!form.last_name) errors.last_name = "Last name is required";
-    else if (!/^[A-Za-z]+$/.test(form.last_name))
+    else if (!TH_EN_TEXT.test(form.last_name))
         errors.last_name = "Last name must contain only letters";
 
-    if (!form.gender) errors.gender = "Gender is required";
 
     // Birth date
     const day = parseInt(form.birth_day);
@@ -77,8 +81,9 @@ export function validatePatientForm(form: PatientFormType): ValidationResult {
 
     // Nationality
     if (!form.nationality) errors.nationality = "Nationality is required";
-    else if (!/^[A-Za-z ]+$/.test(form.nationality))
+    else if (!TH_EN_TEXT.test(form.nationality))
         errors.nationality = "Nationality must contain only letters";
+
 
     // Phone
     if (!form.phone) errors.phone = "Phone number is required";
@@ -92,16 +97,19 @@ export function validatePatientForm(form: PatientFormType): ValidationResult {
 
     // City / State / Postal / Country
     if (!form.city) errors.city = "City is required";
-    else if (!/^[A-Za-z ]+$/.test(form.city)) errors.city = "City must contain only letters";
+    else if (!TH_EN_TEXT.test(form.city))
+        errors.city = "City must contain only letters";
 
     if (!form.state) errors.state = "State is required";
-    else if (!/^[A-Za-z ]+$/.test(form.state)) errors.state = "State must contain only letters";
+    else if (!TH_EN_TEXT.test(form.state))
+        errors.state = "State must contain only letters";
 
     if (!form.postal_code) errors.postal_code = "Postal code is required";
     else if (!/^\d+$/.test(form.postal_code)) errors.postal_code = "Postal code must contain only digits";
 
     if (!form.country) errors.country = "Country is required";
-    else if (!/^[A-Za-z ]+$/.test(form.country)) errors.country = "Country must contain only letters";
+    else if (!TH_EN_TEXT.test(form.country))
+        errors.country = "Country must contain only letters";
 
     // Preferred language
     if (!form.preferred_language)
@@ -114,7 +122,7 @@ export function validatePatientForm(form: PatientFormType): ValidationResult {
     if (emergencyFilled) {
         if (!form.emergency_name)
             errors.emergency_name = "Emergency name is required";
-        else if (!/^[A-Za-z ]+$/.test(form.emergency_name))
+        else if (!TH_EN_TEXT.test(form.emergency_name))
             errors.emergency_name = "Emergency name must contain only letters";
 
         if (!form.emergency_relationship)
@@ -122,7 +130,7 @@ export function validatePatientForm(form: PatientFormType): ValidationResult {
 
         if (!form.emergency_phone)
             errors.emergency_phone = "Emergency phone is required";
-        else if (!/^\d+$/.test(form.emergency_phone))
+        else if (!DIGITS.test(form.emergency_phone))
             errors.emergency_phone = "Emergency phone must contain only digits";
     }
 
