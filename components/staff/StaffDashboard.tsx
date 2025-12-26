@@ -56,7 +56,7 @@ export default function StaffPage() {
         <div className="mx-auto max-w-4xl bg-white p-6 rounded-xl shadow-sm space-y-10 text-sm">
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <h1 className="text-2xl font-semibold">Staff View</h1>
+                <h1 className="text-2xl font-semibold text-black">Staff View</h1>
                 <div className="flex items-center gap-2">
                     <span className="text-gray-500 text-sm">Patient Status</span>
                     <StatusBadge status={form.status} />
