@@ -1,25 +1,22 @@
-"use client";
+interface ButtonProps
+    extends React.ButtonHTMLAttributes<HTMLButtonElement> { }
 
-import React from "react";
-
-type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
-
-export default function Button({ className = "", ...props }: ButtonProps) {
+export default function Button({
+    className = "",
+    disabled,
+    ...props
+}: ButtonProps) {
     return (
         <button
-            {...props}
+            disabled={disabled}
             className={`
-                w-full
-                bg-blue-500
-                hover:bg-blue-600
-                text-white
-                font-medium
-                py-2.5
-                rounded-lg
-                transition
-                shadow-sm
+                px-4 py-2 rounded-lg font-medium transition
+                bg-blue-600 text-white hover:bg-blue-700
+                disabled:bg-gray-300 disabled:text-gray-500
+                disabled:cursor-not-allowed disabled:hover:bg-gray-300
                 ${className}
             `}
+            {...props}
         />
     );
 }

@@ -11,7 +11,6 @@ interface LabelProps {
 export default function Labelinput({
     children,
     required,
-    optional,
     className = "",
     htmlFor,
 }: LabelProps) {
