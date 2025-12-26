@@ -137,7 +137,7 @@ export default function PatientForm() {
 
     return (
         <div className="mx-auto max-w-4xl bg-white p-6 rounded-xl shadow-sm space-y-8 text-sm">
-            <h1 className="text-2xl font-semibold">Patient Information</h1>
+            <h1 className="text-2xl font-semibold text-black">Patient Information</h1>
 
             {/* Personal Information */}
             <section className="space-y-4">

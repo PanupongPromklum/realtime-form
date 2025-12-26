@@ -79,6 +79,9 @@ export function validatePatientForm(form: PatientFormType): ValidationResult {
         }
     }
 
+    // Gender
+    if (!form.gender) errors.gender = "Gender is required";
+
     // Nationality
     if (!form.nationality) errors.nationality = "Nationality is required";
     else if (!TH_EN_TEXT.test(form.nationality))

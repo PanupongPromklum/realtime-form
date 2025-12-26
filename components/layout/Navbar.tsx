@@ -11,7 +11,7 @@ function Navbar() {
     return (
         <div className="bg-white px-6 py-4 sticky top-0 z-50 shadow-sm">
             <div className="mx-auto flex justify-between items-center">
-                <h1 className="text-xl font-bold ">
+                <h1 className="text-xl font-bold text-black">
                     Realtime Form
                 </h1>
 
