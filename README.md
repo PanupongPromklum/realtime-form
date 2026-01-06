@@ -36,7 +36,7 @@ The application consists of two main parts:
 - **Language:** TypeScript
 - **Database & Realtime:** Supabase
 - **Styling:** Tailwind CSS
-- **Deployment:** Vercel (recommended)
+- **Deployment:** Netlify
 
 ---
 
